@@ -32,13 +32,21 @@ class Ubertooth(object):
     def __init__(self):
         self.proc = None
 
+    '''
+    low_frequency ( in ubertooth-specan-ui )    : 2400 * 1e6
+    high_frequency ( in ubertooth-specan-ui )   : 2483 * 1e6
+    '''
     def specan(self, low_frequency, high_frequency, ubertooth_device=-1):
+        print('-'*70)
         spacing_hz = 1e6
         bin_count = int(round((high_frequency - low_frequency) / spacing_hz)) + 1
         frequency_axis = numpy.linspace(low_frequency, high_frequency, num=bin_count, endpoint=True)
         frame_size = len(frequency_axis)
         buffer_size = frame_size * 3
         frequency_index_map = dict(((int(round(frequency_axis[index] / 1e6)), index) for index in range(frame_size)))
+
+        print(frequency_axis)
+        print(f'Frame size: {frame_size}')
 
         low = int(round(low_frequency / 1e6))
         high = int(round(high_frequency / 1e6))
@@ -49,7 +57,8 @@ class Ubertooth(object):
         rssi_offset = -54
         rssi_values = numpy.empty((bin_count,), dtype=numpy.float32)
         rssi_values.fill(default_raw_rssi + rssi_offset)
-
+        print(type(rssi_values))
+        print(f'RSSI value: {rssi_values}')
         # Give it a chance to time out if it fails to find Ubertooth
         time.sleep(0.5)
         if self.proc.poll() is not None:
