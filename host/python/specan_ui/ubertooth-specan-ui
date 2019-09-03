@@ -185,10 +185,12 @@ class RenderArea(QtWidgets.QWidget):
                     pen.setBrush(Qt.red)
                     pen.setStyle(Qt.DotLine)
                     painter.setPen(pen)
+
                     '''
-                    (self._x_to_hz(x_axis[max_max]) / 1e6): 현재 RSSI 최고 값인 주파수 대역
-                    (self._y_to_dbm(y_max[max_max]): 현재 RSSI 최고 값
+                    (self._x_to_hz(x_axis[max_max]) / 1e6): max rssi frequency
+                    (self._y_to_dbm(y_max[max_max]): max rssi value
                     '''
+
                     painter.drawText(QPointF(x_axis[max_max] + 4, 30), '%.06f' % (self._x_to_hz(x_axis[max_max]) / 1e6))
                     painter.drawText(QPointF(30, y_max[max_max] - 4), '%d' % (self._y_to_dbm(y_max[max_max])))
                     painter.drawLine(QPointF(x_axis[max_max], 0), QPointF(x_axis[max_max], self.height()))
@@ -256,7 +258,7 @@ class RenderArea(QtWidgets.QWidget):
             finally:
                 painter.end()
 
-# draw 그래프 관련 데이터
+# draw graph data
     def paintEvent(self, event):
         self._draw_graph()
         self._draw_reticle()
