@@ -207,7 +207,8 @@ class RenderArea(QtWidgets.QWidget):
 
                         # print bin, max value of graph
                         print('bins: {}' .format(i))
-                        print('기존 최고값: {}, 현재 최고값: {}' .format(db_tmp, y_max[i]))
+                        print('기존 최고값: {}, 현재 최고값: {}' .format(db_tmp, self._y_to_dbm(y_max[i])))
+                        print(rssi_values[i])
                         
                         db_tmp = self._y_to_dbm(y_max[i])
                         max_max = i
