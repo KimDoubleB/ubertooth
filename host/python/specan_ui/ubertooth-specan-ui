@@ -159,19 +159,43 @@ class RenderArea(QtWidgets.QWidget):
                 x_axis = self._hz_to_x(frequency_axis)
                 y_now = self._dbm_to_y(rssi_values)
                 y_max = self._dbm_to_y(numpy.amax(self._persisted_frames, axis=0))
+
+                for i in range(10) : print()
                 print('-'*50)
-                print('Frequency axis: ', frequency_axis)
-                print('RSSI value: ', rssi_values)
+                
+                print(f'Frequency axis: {x_axis}')
+                print(f'RSSI value: {rssi_values}')
+                print('Frequency size: {}' .format(len(x_axis)))
+                print('RSSI size: {}' .format(len(rssi_values)))
+#                print('Frequency axis: ', frequency_axis / 1e)
+
+
+                '''
+                밑 코드를 보자.
+                - path_now
+                : x_axis(2.4GHz 대역)을 돌면서 그래프를 그려감
+                : 당연히 y 값은 y_now로서 현재 스니핑된 주파수 RSSI 값(세기)를 표현
+
+                - path_max
+                : x_axis(2.4GHz 대역)을 돌면서 그래프를 그려감
+                : path_now와 다르게 y_now가 아닌 y_max로 해당 주파수에서 max RSSI 값(세기)를 표현
+                '''
+
                 path_now.moveTo(float(x_axis[0]), float(y_now[0]))
                 for i in bins:
                     path_now.lineTo(float(x_axis[i]), float(y_now[i]))
 
+                # 중요한게 path_max는 높아질 뿐만 아니라 주저 않는 구간도 존재한다. 찾아야함.
                 path_max.moveTo(float(x_axis[0]), float(y_max[0]))
                 db_tmp = self._low_dbm
                 max_max = None
                 for i in bins:
                     path_max.lineTo(float(x_axis[i]), float(y_max[i]))
                     if self._y_to_dbm(y_max[i]) > db_tmp:
+
+                        # print bin, max value of graph
+                        print('bins: {}, max_max: {}' .format(i, max_max))
+                        
                         db_tmp = self._y_to_dbm(y_max[i])
                         max_max = i
 
