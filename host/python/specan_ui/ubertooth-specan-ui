@@ -163,11 +163,18 @@ class RenderArea(QtWidgets.QWidget):
                 for i in range(10) : print()
                 print('-'*50)
                 
-                print(f'Frequency axis: {x_axis}')
+                '''
+                아래의 값을 보면 알겠지만, 
+                2400MHz ~ 2483MHz 대역대를 스니핑함.
+                여기서 1 MHz간의 RSSI 값을 가져오고 이를 rssi_values에 저장하고 있음.
+
+                size = 83
+                '''
+                frequency_print = frequency_axis / 1e6
+                print(f'Frequency axis: {frequency_print}')
                 print(f'RSSI value: {rssi_values}')
-                print('Frequency size: {}' .format(len(x_axis)))
+                print('Frequency size: {}' .format(len(frequency_print)))
                 print('RSSI size: {}' .format(len(rssi_values)))
-#                print('Frequency axis: ', frequency_axis / 1e)
 
 
                 '''
@@ -179,6 +186,10 @@ class RenderArea(QtWidgets.QWidget):
                 - path_max
                 : x_axis(2.4GHz 대역)을 돌면서 그래프를 그려감
                 : path_now와 다르게 y_now가 아닌 y_max로 해당 주파수에서 max RSSI 값(세기)를 표현
+                
+                bins는 위에서 다음과 같이 정의되었음.
+                : bins = range(len(frequency_axis))
+                : 0~82 list variable
                 '''
 
                 path_now.moveTo(float(x_axis[0]), float(y_now[0]))
@@ -188,13 +199,15 @@ class RenderArea(QtWidgets.QWidget):
                 # 중요한게 path_max는 높아질 뿐만 아니라 주저 않는 구간도 존재한다. 찾아야함.
                 path_max.moveTo(float(x_axis[0]), float(y_max[0]))
                 db_tmp = self._low_dbm
-                max_max = None
+                max_max = None # max_max는 단순히 후에 최고값을 빨간색으로 표현하기 위한 몇번째 bin인지 저장하기 위한 변수
+                
                 for i in bins:
                     path_max.lineTo(float(x_axis[i]), float(y_max[i]))
                     if self._y_to_dbm(y_max[i]) > db_tmp:
 
                         # print bin, max value of graph
-                        print('bins: {}, max_max: {}' .format(i, max_max))
+                        print('bins: {}' .format(i))
+                        print('기존 최고값: {}, 현재 최고값: {}' .format(db_tmp, y_max[i]))
                         
                         db_tmp = self._y_to_dbm(y_max[i])
                         max_max = i
