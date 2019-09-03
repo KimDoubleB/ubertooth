@@ -35,6 +35,8 @@ class Ubertooth(object):
     '''
     low_frequency ( in ubertooth-specan-ui )    : 2400 * 1e6
     high_frequency ( in ubertooth-specan-ui )   : 2483 * 1e6
+    
+    첫 스캔시, 한번 호출된다.
     '''
     def specan(self, low_frequency, high_frequency, ubertooth_device=-1):
         print('-'*70)
@@ -45,8 +47,9 @@ class Ubertooth(object):
         buffer_size = frame_size * 3
         frequency_index_map = dict(((int(round(frequency_axis[index] / 1e6)), index) for index in range(frame_size)))
 
-        print(frequency_axis)
-        print(f'Frame size: {frame_size}')
+#        print(frequency_axis) 
+#        print(f'Frame size: {frame_size}') # 84
+
 
         low = int(round(low_frequency / 1e6))
         high = int(round(high_frequency / 1e6))
@@ -57,8 +60,8 @@ class Ubertooth(object):
         rssi_offset = -54
         rssi_values = numpy.empty((bin_count,), dtype=numpy.float32)
         rssi_values.fill(default_raw_rssi + rssi_offset)
-        print(type(rssi_values))
-        print(f'RSSI value: {rssi_values}')
+#       print(type(rssi_values)) # numpy array
+#       print(f'RSSI value: {rssi_values}') # 초기화된 RSSI
         # Give it a chance to time out if it fails to find Ubertooth
         time.sleep(0.5)
         if self.proc.poll() is not None:

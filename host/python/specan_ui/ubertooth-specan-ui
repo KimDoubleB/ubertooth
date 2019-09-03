@@ -177,6 +177,9 @@ class RenderArea(QtWidgets.QWidget):
                 pen.setBrush(Qt.white)
                 painter.setPen(pen)
                 painter.drawPath(path_now)
+                print('-'*50)
+                print(type(path_now))
+                print(path_now)
                 self._path_max = path_max
                 if max_max is not None and not self._hide_markers:
                     pen.setBrush(Qt.red)
@@ -253,6 +256,7 @@ class RenderArea(QtWidgets.QWidget):
             finally:
                 painter.end()
 
+# draw 그래프 관련 데이터
     def paintEvent(self, event):
         self._draw_graph()
         self._draw_reticle()
