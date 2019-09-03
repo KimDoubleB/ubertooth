@@ -160,8 +160,8 @@ class RenderArea(QtWidgets.QWidget):
                 y_now = self._dbm_to_y(rssi_values)
                 y_max = self._dbm_to_y(numpy.amax(self._persisted_frames, axis=0))
                 print('-'*50)
-                print(f'Frequency_axis: {frequency_axis}')
-                print(f'RSSI Value: {rssi_values}')
+                print('Frequency axis: ', frequency_axis)
+                print('RSSI value: ', rssi_values)
                 path_now.moveTo(float(x_axis[0]), float(y_now[0]))
                 for i in bins:
                     path_now.lineTo(float(x_axis[i]), float(y_now[i]))
