@@ -197,8 +197,8 @@ class RenderArea(QtWidgets.QWidget):
                     # ubertooth.py 에서 time.sleep(0.5) 부분 수정 필요. 0.013초간 딜레이
                     # 1초로 바꿈
                 # /home/user/documents/python/rssi.png
-                
-                addr = 'home/user/img_uber/' + nowDatetime +'.png'
+                bb = os.path.abspath('.')
+                addr = bb + '/img_uber/' + nowDatetime +'.png'
                 plt.savefig(addr)
 
                 '''
