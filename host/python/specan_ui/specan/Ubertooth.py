@@ -60,8 +60,10 @@ class Ubertooth(object):
         rssi_offset = -54
         rssi_values = numpy.empty((bin_count,), dtype=numpy.float32)
         rssi_values.fill(default_raw_rssi + rssi_offset)
+
 #       print(type(rssi_values)) # numpy array
 #       print(f'RSSI value: {rssi_values}') # 초기화된 RSSI
+
         # Give it a chance to time out if it fails to find Ubertooth
         time.sleep(0.5)
         if self.proc.poll() is not None:
@@ -77,7 +79,8 @@ class Ubertooth(object):
                     index = frequency_index_map[frequency]
                     if index == 0:
                         # new frame, pause as a frame limiter!
-                        time.sleep(0.013)  # I regret nothing
+                        time.sleep(1)  # I regret nothing
+                        # 1초마다 scan
 
                         # We started a new frame, send the existing frame
                         yield (frequency_axis, rssi_values)

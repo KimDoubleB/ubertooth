@@ -31,6 +31,10 @@ from PySide2.QtCore import Qt, QPointF, QLineF
 
 from specan import Ubertooth
 
+import matplotlib.pyplot as plt
+from datetime import datetime
+import os
+
 DEFAULT_LOWER_FREQ = 2400
 DEFAULT_UPPER_FREQ = 2483
 
@@ -160,7 +164,7 @@ class RenderArea(QtWidgets.QWidget):
                 y_now = self._dbm_to_y(rssi_values)
                 y_max = self._dbm_to_y(numpy.amax(self._persisted_frames, axis=0))
 
-                for i in range(10) : print()
+                for i in range(10) : print() # 띄어쓰기
                 print('-'*50)
                 
                 '''
@@ -176,6 +180,26 @@ class RenderArea(QtWidgets.QWidget):
                 print('Frequency size: {}' .format(len(frequency_print)))
                 print('RSSI size: {}' .format(len(rssi_values)))
 
+                # RSSI img 저장 부분
+                now = datetime.now()
+                nowDatetime = now.strftime('%Y-%m-%d_%H_%M_%S')
+
+                plt.figure(figsize=(10, 4))
+
+                plt.plot(frequency_print, rssi_values)
+
+                plt.xlabel('Frequency (MHz)')
+                plt.ylabel('RSSI (dbm)')
+
+                #plt.show()
+                # 주소 재정립 필요
+                # 그리고 이거 term이 너무 짧아서 과부하걸릴 것 같다. --> time.sleep 찾아보거나 시간조정 필요
+                    # ubertooth.py 에서 time.sleep(0.5) 부분 수정 필요. 0.013초간 딜레이
+                    # 1초로 바꿈
+                # /home/user/documents/python/rssi.png
+                
+                addr = '/home/user/documents/python/' + nowDatetime +'.png'
+                plt.savefig(os.path.abspath(addr))
 
                 '''
                 밑 코드를 보자.
