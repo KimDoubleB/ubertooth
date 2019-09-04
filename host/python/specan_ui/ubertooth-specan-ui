@@ -198,8 +198,8 @@ class RenderArea(QtWidgets.QWidget):
                     # 1초로 바꿈
                 # /home/user/documents/python/rssi.png
                 
-                addr = '/home/user/documents/python/' + nowDatetime +'.png'
-                plt.savefig(os.path.abspath(addr))
+                addr = 'home/user/img_uber/' + nowDatetime +'.png'
+                plt.savefig(addr)
 
                 '''
                 밑 코드를 보자.
