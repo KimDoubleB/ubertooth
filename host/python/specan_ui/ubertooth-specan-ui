@@ -175,11 +175,16 @@ class RenderArea(QtWidgets.QWidget):
                 size = 83
                 '''
 
-                # frequency_print = frequency_axis / 1e6
-                # print(f'Frequency axis: {frequency_print}')
+                frequency_print = frequency_axis / 1e6
+                print(f'Frequency axis: {frequency_print}')
                 # print(f'RSSI value: {rssi_values}')
-                # print('Frequency size: {}' .format(len(frequency_print)))
+                print('Frequency size: {}' .format(len(frequency_print)))
                 # print('RSSI size: {}' .format(len(rssi_values)))
+
+                # 논문의 경우, Zigbee의 15, 21 channel 사용
+                # 15 channel: 2425 MHz
+                # 21 channel: 2455 MHz
+                # 해당 RSSI 값 사용 -> time domain으로 수행할 것.
 
                 # # RSSI img 저장 부분
                 # now = datetime.now()
