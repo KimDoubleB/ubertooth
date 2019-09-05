@@ -87,6 +87,9 @@ class Ubertooth(object):
                         rssi_values.fill(default_raw_rssi + rssi_offset)
                     rssi_values[index] = raw_rssi_value + rssi_offset
 
+                print(f'RSSI Value: {rssi_values}')
+                print(f'Frequency value: {frequency_axis}')
+
     def close(self):
         if self.proc and not self.proc.poll():
             self.proc.terminate()
