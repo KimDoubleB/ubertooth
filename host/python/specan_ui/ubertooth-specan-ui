@@ -175,10 +175,12 @@ class RenderArea(QtWidgets.QWidget):
                 size = 83
                 '''
 
-                frequency_print = frequency_axis / 1e6
-                print(f'Frequency axis: {frequency_print}')
+#                frequency_print = frequency_axis / 1e6
+#                print(f'WWWWWWWWWWWWWWWWWWWWWW: {frequency_print}')
+#                for i in range(10): print()  # 띄어쓰기
+
                 # print(f'RSSI value: {rssi_values}')
-                print('Frequency size: {}' .format(len(frequency_print)))
+                # print('Frequency size: {}' .format(len(frequency_print)))
                 # print('RSSI size: {}' .format(len(rssi_values)))
 
                 # 논문의 경우, Zigbee의 15, 21 channel 사용
@@ -464,7 +466,7 @@ def sigint_handler(*args):
     """Handler for the SIGINT signal."""
     QtWidgets.QApplication.quit()
 
-
+# argument로 받은 채널 값을 토대로 주파수 대역대를 설정해주는 함수
 def convert_wifi(channel):
     if channel < 1 or channel > 14:
         print("ERROR: channel " + str(channel) + " is not a valid wifi channel")
@@ -475,6 +477,7 @@ def convert_wifi(channel):
     else:
         return channel * 5 + 2407
 
+# 기기의 한계를 넘는 주파수 대역대가 아닌지 확인
 def check_freq(freq):
     if freq < MIN_FREQ:
         print("ERROR: frequency of " + str(freq) + " MHz is below minimum frequency of " + str(MIN_FREQ))
@@ -483,7 +486,7 @@ def check_freq(freq):
         print("ERROR: frequency of " + str(freq) + " MHz is above maximum frequency of " + str(MAX_FREQ))
         raise ValueError()
 
-
+# 인자로 받은 주파수 대역 범위가 가능한 범위인지 확인
 def check_freq_pair(freq1, freq2):
     check_freq(freq1)
     check_freq(freq2)
@@ -495,6 +498,7 @@ def check_freq_pair(freq1, freq2):
 if __name__ == '__main__':
     signal.signal(signal.SIGINT, sigint_handler)
 
+    # ubertooth-specan-ui 실행 시에 argument 설정 방법
     parser = ArgumentParser()
     parser.add_argument("-U", type=int, dest="device",
                       help="set ubertooth device to use")
@@ -505,14 +509,19 @@ if __name__ == '__main__':
 
     (options, extras) = parser.parse_known_args()
 
+    # ubertooth 기기 받아오고, 정보 없으면 -1 return
     ubertooth_device = options.device
 
     if ubertooth_device is None:
         ubertooth_device = -1
 
+
+    # argument -l -u 를 통해 lower upeer 주파수 대역 정보 받은 경우, 대입을 통해 스캔할 신호 셋팅
     lower_freq = options.lower_freq
     upper_freq = options.upper_freq
 
+    # argument에서 어떤 정보를 받았는가
+    # wifi를 받은 경우, 채널의 정보를 같이 받는다. 2개이하의 채널을 받을 수 있다.
     if options.wifi:
 
         lower_channel = upper_channel = None
@@ -532,10 +541,12 @@ if __name__ == '__main__':
             sys.exit(1)
 
         try:
+            # 받은 채널 값에 맞게 주파수대역을 설정해주는 단계 -> convert_wifi 수행
             lower_freq = convert_wifi(lower_channel) - options.padding
             upper_freq = convert_wifi(upper_channel) + options.padding
         except ValueError:
             sys.exit(1)
+    # 받은게 없으면, 그냥 앞서 lower, upper frequency를 미리 정의해놓은 default 값으로 적용
     else:
         if not lower_freq:
             lower_freq = DEFAULT_LOWER_FREQ
@@ -547,6 +558,7 @@ if __name__ == '__main__':
     except ValueError:
         sys.exit(1)
 
+    # 설정한 주파수 대역대, 우버투스 기기를 기반으로 프로그램 실행
     app = QtWidgets.QApplication(sys.argv)
     window = Window(ubertooth_device=ubertooth_device, lower_freq=lower_freq, upper_freq=upper_freq)
     window.show()

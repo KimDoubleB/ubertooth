@@ -35,11 +35,10 @@ class Ubertooth(object):
     '''
     low_frequency ( in ubertooth-specan-ui )    : 2400 * 1e6
     high_frequency ( in ubertooth-specan-ui )   : 2483 * 1e6
-    
+
     첫 스캔시, 한번 호출된다.
     '''
     def specan(self, low_frequency, high_frequency, ubertooth_device=-1):
-        print('-'*70)
         spacing_hz = 1e6
         bin_count = int(round((high_frequency - low_frequency) / spacing_hz)) + 1
         frequency_axis = numpy.linspace(low_frequency, high_frequency, num=bin_count, endpoint=True)
@@ -75,8 +74,8 @@ class Ubertooth(object):
             while len(data) >= 3:
                 
                 frequency, raw_rssi_value = struct.unpack('>Hb', data[:3])
-                print(f'OOOOOwing : {frequency}')
-                print(f'OOOOOwing : {raw_rssi_value}')
+                # print(f'OOOOOwing : {frequency}')
+                # print(f'OOOOOwing : {raw_rssi_value}')
                 
                 data = data[3:]
                 if frequency >= low and frequency <= high:
@@ -91,8 +90,8 @@ class Ubertooth(object):
                         rssi_values.fill(default_raw_rssi + rssi_offset)
                     rssi_values[index] = raw_rssi_value + rssi_offset
 
-                print(f'RSSI Value: {rssi_values}')
-                print(f'Frequency value: {frequency_axis}')
+                # print(f'RSSI Value: {rssi_values}')
+                # print(f'Frequency value: {frequency_axis}')
 
     def close(self):
         if self.proc and not self.proc.poll():
