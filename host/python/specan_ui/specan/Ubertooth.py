@@ -82,7 +82,7 @@ class Ubertooth(object):
                     index = frequency_index_map[frequency]
                     if index == 0:
                         # new frame, pause as a frame limiter!
-                        time.sleep(1)  # I regret nothing
+                        time.sleep(0.001)  # I regret nothing
                         # 1초마다 scan
 
                         # We started a new frame, send the existing frame
