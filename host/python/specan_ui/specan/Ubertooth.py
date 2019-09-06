@@ -73,7 +73,11 @@ class Ubertooth(object):
         while self.proc.poll() is None:
             data = self.proc.stdout.read(buffer_size)
             while len(data) >= 3:
+                
                 frequency, raw_rssi_value = struct.unpack('>Hb', data[:3])
+                print(f'OOOOOwing : {frequency}')
+                print(f'OOOOOwing : {raw_rssi_value}')
+                
                 data = data[3:]
                 if frequency >= low and frequency <= high:
                     index = frequency_index_map[frequency]
