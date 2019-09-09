@@ -74,6 +74,7 @@ class RenderArea(QtWidgets.QWidget):
         QtWidgets.QWidget.__init__(self, parent)
 
         self.rssi_group = []
+        self.count_image = 0
 
         self._graph = None
         self._reticle = None
@@ -352,95 +353,39 @@ class RenderArea(QtWidgets.QWidget):
 
         if self._frame:
             frequency_axis, rssi_values = self._frame
-
-
-            '''
-            아래의 값을 보면 알겠지만,
-            2400MHz ~ 2483MHz 대역대를 스니핑함.
-            여기서 1 MHz간의 RSSI 값을 가져오고 이를 rssi_values에 저장하고 있음.
-
-            size = 83
-            '''
-
-            # for i in range(10): print()  # 띄어쓰기
-            # frequency_print = frequency_axis / 1e6
-            # print(f'Frequency: {frequency_print}')
-
+            frequency_print = frequency_axis / 1e6
+            print(f'Frequency: {frequency_print}')
             print(f'RSSI value: {rssi_values}')
-            print(self.rssi_group.append(rssi_values[0]))
-            # print('Frequency size: {}' .format(len(frequency_print)))
-            # print('RSSI size: {}'.format(len(rssi_values)))
-
-            # 논문의 경우, Zigbee의 15, 21 channel 사용
-            # 15 channel: 2425 MHz
-            # 21 channel: 2455 MHz
-            # 해당 RSSI 값 사용 -> time domain으로 수행할 것.
-
-            # # RSSI img 저장 부분
-            # now = datetime.now()
-            # nowDatetime = now.strftime('%Y-%m-%d_%H_%M_%S')
-
-            # plt.figure(figsize=(10, 4))
-
-            # plt.plot(frequency_print, rssi_values)
-
-            # plt.xlabel('Frequency (MHz)')
-            # plt.ylabel('RSSI (dbm)')
-
-            # #plt.show()
-            # # 주소 재정립 필요
-            # # 그리고 이거 term이 너무 짧아서 과부하걸릴 것 같다. --> time.sleep 찾아보거나 시간조정 필요
-            #     # ubertooth.py 에서 time.sleep(0.5) 부분 수정 필요. 0.013초간 딜레이
-            #     # 1초로 바꿈
-            # # /home/user/documents/python/rssi.png
-            # bb = os.path.abspath('.')
-            # addr = bb + '/img_uber/' + nowDatetime +'.png'
-            # plt.savefig(addr)
-
-            '''
-            밑 코드를 보자.
-            - path_now
-            : x_axis(2.4GHz 대역)을 돌면서 그래프를 그려감
-            : 당연히 y 값은 y_now로서 현재 스니핑된 주파수 RSSI 값(세기)를 표현
-
-            - path_max
-            : x_axis(2.4GHz 대역)을 돌면서 그래프를 그려감
-            : path_now와 다르게 y_now가 아닌 y_max로 해당 주파수에서 max RSSI 값(세기)를 표현
-
-            bins는 위에서 다음과 같이 정의되었음.
-            : bins = range(len(frequency_axis))
-            : 0~82 list variable
-            '''
-
-
+            self.rssi_group.append(rssi_values[0])
 
 
     # draw graph data
     def paintEvent(self, event):
 
         self._store_graph()
+        print('length: ',len(self.rssi_group))
+        print(self.count_image)
 
-        count_image = 0
-
-        print(len(self.rssi_group))
         if len(self.rssi_group) == 200:
-            for i in range(10): print()  # 띄어쓰기
+            if self.count_image != 0:
+                for i in range(10): print()  # 띄어쓰기
 
-            now = datetime.now()
-            now_date = now.strftime('%Y-%m-%d_%H_%M_%S_' + count_image)
+                now = datetime.now()
+                now_date = now.strftime('%Y-%m-%d_%H_%M_%S_' + str(self.count_image))
 
-            plt.figure(figsize=(10, 4))
+                plt.figure(figsize=(6, 4))
 
-            plt.xlabel('Time (ms)')
-            plt.ylabel('RSSI (dbm)')
+                plt.xlabel('Time (ms)')
+                plt.ylabel('RSSI (dbm)')
+                plt.ylim([-110, 0])
+                plt.plot(list(range(1,201)), self.rssi_group)
 
-            plt.plot(list(range(1,201)), self.rssi_group)
+                bb = os.path.abspath('.')
+                addr = bb + '/img_uber/' + now_date +'.png'
+                plt.savefig(addr)
 
-            bb = os.path.abspath('.')
-            addr = bb + '/img_uber/' + now_date +'.png'
-            plt.savefig(addr)
-
-            count_image += 1
+            self.rssi_group = []
+            self.count_image += 1
 
 
 

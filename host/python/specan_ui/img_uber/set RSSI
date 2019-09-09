@@ -1,0 +1,14 @@
+지금 하고자 하는 것은 time-domain RSSI graph를 만드는 것.
+-> 한 frequency에서 RSSI 측정해서 수행
+
+
+ch 15: 2425
+ch 21: 2455
+
+python3.7 ubertooth-specan-ui -l 2425 -u 2425
+
+0 ~ 200 ms
+
+
+1 ms 마다 측정 --> 200개 --> 1개의 image
+
