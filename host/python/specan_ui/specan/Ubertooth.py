@@ -38,7 +38,7 @@ class Ubertooth(object):
 
     첫 스캔시, 한번 호출된다.
     '''
-    def specan(self, low_frequency, high_frequency, ubertooth_device=-1):
+    def specan(self, low_frequency, high_frequency, average_data=False, ubertooth_device=-1):
         spacing_hz = 1e6
         bin_count = int(round((high_frequency - low_frequency) / spacing_hz)) + 1
         frequency_axis = numpy.linspace(low_frequency, high_frequency, num=bin_count, endpoint=True)
@@ -46,7 +46,7 @@ class Ubertooth(object):
         buffer_size = frame_size * 3
         frequency_index_map = dict(((int(round(frequency_axis[index] / 1e6)), index) for index in range(frame_size)))
 
-#        print(frequency_axis) 
+#        print(frequency_axis)
 #        print(f'Frame size: {frame_size}') # 84
 
 
@@ -72,18 +72,18 @@ class Ubertooth(object):
         while self.proc.poll() is None:
             data = self.proc.stdout.read(buffer_size)
             while len(data) >= 3:
-                
+
                 frequency, raw_rssi_value = struct.unpack('>Hb', data[:3])
                 # print(f'OOOOOwing : {frequency}')
                 # print(f'OOOOOwing : {raw_rssi_value}')
-                
+
                 data = data[3:]
                 if frequency >= low and frequency <= high:
                     index = frequency_index_map[frequency]
                     if index == 0:
                         # new frame, pause as a frame limiter!
+                        # 0.001 초마다 scan
                         time.sleep(0.001)  # I regret nothing
-                        # 1초마다 scan
 
                         # We started a new frame, send the existing frame
                         yield (frequency_axis, rssi_values)

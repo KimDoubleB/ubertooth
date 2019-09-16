@@ -44,7 +44,7 @@ MIN_FREQ = 2300
 MAX_FREQ = 2600
 
 class SpecanThread(threading.Thread):
-    def __init__(self, device, low_frequency, high_frequency, new_frame_callback, ubertooth_device=-1):
+    def __init__(self, device, low_frequency, high_frequency, new_frame_callback, average_data, ubertooth_device=-1):
         threading.Thread.__init__(self)
         self.daemon = True
 
@@ -55,9 +55,10 @@ class SpecanThread(threading.Thread):
         self._new_frame_callback = new_frame_callback
         self._stopping = False
         self._stopped = False
+        self._average_data = average_data
 
     def run(self):
-        frame_source = self._device.specan(self._low_frequency, self._high_frequency, ubertooth_device=self._ubertooth_device)
+        frame_source = self._device.specan(self._low_frequency, self._high_frequency, self._average_data, ubertooth_device=self._ubertooth_device)
         for frequency_axis, rssi_values in frame_source:
             self._new_frame_callback(numpy.copy(frequency_axis), numpy.copy(rssi_values))
             if self._stopping:
@@ -99,10 +100,13 @@ class RenderArea(QtWidgets.QWidget):
 
         self._clear_scheduled = False
 
+        self._average_data = False
+
         self._thread = SpecanThread(self._device,
                                     self._low_frequency,
                                     self._high_frequency,
                                     self._new_frame,
+                                    self._average_data,
                                     ubertooth_device=ubertooth_device)
         self._thread.start()
 
@@ -741,7 +745,7 @@ if __name__ == '__main__':
     except ValueError:
         sys.exit(1)
     if options.save:
-
+        pass
     else:
         # 설정한 주파수 대역대, 우버투스 기기를 기반으로 프로그램 실행
         app = QtWidgets.QApplication(sys.argv)
