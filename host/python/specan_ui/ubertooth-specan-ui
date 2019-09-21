@@ -371,8 +371,11 @@ class RenderArea(QtWidgets.QWidget):
         print('length: ',len(self.rssi_group))
         #print(self.count_image)
 
+        # The number of scanning data
+        scan_number = 100
+
         # store graph
-        if len(self.rssi_group) == 200:
+        if len(self.rssi_group) == scan_number:
             if self.count_image != 0:
                 for i in range(10): print()  # 띄어쓰기
 
@@ -384,14 +387,14 @@ class RenderArea(QtWidgets.QWidget):
                 plt.xlabel('Time (ms)')
                 plt.ylabel('RSSI (dbm)')
                 plt.ylim([-110, 0])
-                plt.plot(list(range(1,201)), self.rssi_group)
+                plt.plot(list(range(1, scan_number + 1)), self.rssi_group)
 
                 bb = os.path.abspath('.')
                 addr = bb + '/img_uber/' + now_date +'.png'
                 plt.savefig(addr)
 
             self.rssi_group = []
-            s   elf.count_image += 1
+            self.count_image += 1
 
 
         # Before modifying, original code
