@@ -44,7 +44,7 @@ MIN_FREQ = 2300
 MAX_FREQ = 2600
 
 class SpecanThread(threading.Thread):
-    def __init__(self, device, low_frequency, high_frequency, new_frame_callback, average_data, ubertooth_device=-1):
+    def __init__(self, device, low_frequency, high_frequency, new_frame_callback, save, ubertooth_device=-1):
         threading.Thread.__init__(self)
         self.daemon = True
 
@@ -55,10 +55,10 @@ class SpecanThread(threading.Thread):
         self._new_frame_callback = new_frame_callback
         self._stopping = False
         self._stopped = False
-        self._average_data = average_data
+        self._save = save
 
     def run(self):
-        frame_source = self._device.specan(self._low_frequency, self._high_frequency, self._average_data, ubertooth_device=self._ubertooth_device)
+        frame_source = self._device.specan(self._low_frequency, self._high_frequency, self._save, ubertooth_device=self._ubertooth_device)
         for frequency_axis, rssi_values in frame_source:
             self._new_frame_callback(numpy.copy(frequency_axis), numpy.copy(rssi_values))
             if self._stopping:
@@ -71,7 +71,7 @@ class SpecanThread(threading.Thread):
 
 
 class RenderArea(QtWidgets.QWidget):
-    def __init__(self, device, parent=None, ubertooth_device=-1, lower_freq=DEFAULT_LOWER_FREQ, upper_freq=DEFAULT_UPPER_FREQ, average_data=False):
+    def __init__(self, device, parent=None, ubertooth_device=-1, lower_freq=DEFAULT_LOWER_FREQ, upper_freq=DEFAULT_UPPER_FREQ, save=False):
         QtWidgets.QWidget.__init__(self, parent)
 
         self.rssi_group = []
@@ -100,13 +100,13 @@ class RenderArea(QtWidgets.QWidget):
 
         self._clear_scheduled = False
 
-        self._average_data = average_data
+        self._save = save
 
         self._thread = SpecanThread(self._device,
                                     self._low_frequency,
                                     self._high_frequency,
                                     self._new_frame,
-                                    self._average_data,
+                                    self._save,
                                     ubertooth_device=ubertooth_device)
         self._thread.start()
 
@@ -366,40 +366,40 @@ class RenderArea(QtWidgets.QWidget):
     # draw graph data
     def paintEvent(self, event):
 
-        # get the data of rssi value that is drawn to graph
-        self._store_graph()
-        print('length: ',len(self.rssi_group))
-        #print(self.count_image)
+        if self._save:
+            # get the data of rssi value that is drawn to graph
+            self._store_graph()
+            print('length: ',len(self.rssi_group))
+            #print(self.count_image)
 
-        # The number of scanning data
-        scan_number = 100
+            # The number of scanning data
+            scan_number = 100 # ms
 
-        # store graph
-        if len(self.rssi_group) == scan_number:
-            if self.count_image != 0:
-                for i in range(10): print()  # 띄어쓰기
+            # store graph
+            if len(self.rssi_group) == scan_number:
+                if self.count_image != 0:
+                    for i in range(10): print()  # 띄어쓰기
 
-                now = datetime.now()
-                now_date = now.strftime('%Y-%m-%d_%H_%M_%S_' + str(self.count_image))
+                    now = datetime.now()
+                    now_date = now.strftime('%Y-%m-%d_%H_%M_%S_' + str(self.count_image))
 
-                plt.figure(figsize=(6, 4))
+                    plt.figure(figsize=(6, 4))
 
-                plt.xlabel('Time (ms)')
-                plt.ylabel('RSSI (dbm)')
-                plt.ylim([-110, 0])
-                plt.plot(list(range(1, scan_number + 1)), self.rssi_group)
+                    plt.xlabel('Time (ms)')
+                    plt.ylabel('RSSI (dbm)')
+                    plt.ylim([-110, 0])
+                    plt.plot(list(range(1, scan_number + 1)), self.rssi_group)
 
-                bb = os.path.abspath('.')
-                addr = bb + '/img_uber/' + now_date +'.png'
-                plt.savefig(addr)
+                    bb = os.path.abspath('.')
+                    addr = bb + '/img_uber/' + now_date +'.png'
+                    plt.savefig(addr)
 
-            self.rssi_group = []
-            self.count_image += 1
+                self.rssi_group = []
+                self.count_image += 1
 
-
-        # Before modifying, original code
-        #self._draw_graph()
-        #self._draw_reticle()
+        else:
+            self._draw_graph()
+            self._draw_reticle()
 
         painter = QtGui.QPainter(self)
         try:
@@ -446,12 +446,12 @@ class RenderArea(QtWidgets.QWidget):
 
 
 class Window(QtWidgets.QWidget):
-    def __init__(self, parent=None, ubertooth_device=-1, lower_freq=DEFAULT_LOWER_FREQ, upper_freq=DEFAULT_UPPER_FREQ, average_data=False):
+    def __init__(self, parent=None, ubertooth_device=-1, lower_freq=DEFAULT_LOWER_FREQ, upper_freq=DEFAULT_UPPER_FREQ, save=False):
         QtWidgets.QWidget.__init__(self, parent)
 
         self._device = self._open_device()
 
-        self.render_area = RenderArea(self._device, ubertooth_device=ubertooth_device, lower_freq=lower_freq, upper_freq=upper_freq, average_data=average_data)
+        self.render_area = RenderArea(self._device, ubertooth_device=ubertooth_device, lower_freq=lower_freq, upper_freq=upper_freq, save=save)
 
         main_layout = QtWidgets.QGridLayout()
         main_layout.setContentsMargins(0, 0, 0, 0)
@@ -694,7 +694,7 @@ if __name__ == '__main__':
     parser.add_argument("-l", type=int, dest="lower_freq", help="lower bound for scan, in MHz (no less than " + str(MIN_FREQ) + ")")
     parser.add_argument("-u", type=int, dest="upper_freq", help="upper bound for scan, in MHz (no more than " + str(MAX_FREQ) + ")")
     parser.add_argument("-save", type=bool, dest="save", help="save time-domain RSSI value graph")
-    parser.add_argument("-avg", type=bool, dest="avg", help="save average(200ms) time-domain RSSI value graph")
+#    parser.add_argument("-avg", type=bool, dest="avg", help="save average(200ms) time-domain RSSI value graph")
     parser.add_argument("--wifi", type=str, nargs='?', dest="wifi", metavar="channel(s)", help="display the spectrum for the wifi channels provided, either as a single number for one channel, or a range (e.g. 1-11) for two channels", const="1", default=False)
     parser.add_argument("--padding", type=int, dest="padding", help="padding on both ends when using --wifi, measured in MHz (default 10)", default=10)
 
@@ -745,21 +745,17 @@ if __name__ == '__main__':
         if not upper_freq:
             upper_freq = DEFAULT_UPPER_FREQ
 
-    if options.avg:
-        average_data = True
+    if options.save:
+        save = True
     else:
-        average_data = False
+        save = False
 
     try:
         check_freq_pair(lower_freq, upper_freq)
     except ValueError:
         sys.exit(1)
-
-    if options.save:
-        pass
-    else:
-        # 설정한 주파수 대역대, 우버투스 기기를 기반으로 프로그램 실행
-        app = QtWidgets.QApplication(sys.argv)
-        window = Window(ubertooth_device=ubertooth_device, lower_freq=lower_freq, upper_freq=upper_freq, average_data=average_data)
-        window.show()
-        sys.exit(app.exec_())
+    # 설정한 주파수 대역대, 우버투스 기기를 기반으로 프로그램 실행
+    app = QtWidgets.QApplication(sys.argv)
+    window = Window(ubertooth_device=ubertooth_device, lower_freq=lower_freq, upper_freq=upper_freq, save=save)
+    window.show()
+    sys.exit(app.exec_())
