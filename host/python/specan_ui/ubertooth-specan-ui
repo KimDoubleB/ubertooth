@@ -76,6 +76,8 @@ class RenderArea(QtWidgets.QWidget):
 
         self.rssi_group = []
         self.count_image = 0
+        self.scan_threshold = -90
+        self.scan_available = False
 
         self._graph = None
         self._reticle = None
@@ -357,20 +359,32 @@ class RenderArea(QtWidgets.QWidget):
 
         if self._frame:
             frequency_axis, rssi_values = self._frame
-            frequency_print = frequency_axis / 1e6
-            #print(f'Frequency: {frequency_print}')
+            # frequency_print = frequency_axis / 1e6
+            # print(f'Frequency: {frequency_print}')
             print(f'RSSI value: {rssi_values}')
-            self.rssi_group.append(rssi_values[0])
 
+            if self.scan_available:
+                self.rssi_group.append(rssi_values[0])  # 측정값 저장
+            else:
+                # 측정값이 threshold보다 크면, 측정시작하는 변수 True
+                if rssi_values[0] >= self.scan_threshold:
+                    self.rssi_group.append(rssi_values[0]) # 측정값 저장
+                    self.scan_available = True
+                else:
+                    # 그래프가 첫번째부터 값이 튀는 것을 방지하기 위해, 값이 threshold보다 커지기 전의 5개의 값도 저장
+                    if len(self.rssi_group) >= 5:
+                        self.rssi_group.pop(0)
+                    self.rssi_group.append(rssi_values[0])
 
     # draw graph data
     def paintEvent(self, event):
 
         if self._save:
+            # save mode
+
             # get the data of rssi value that is drawn to graph
             self._store_graph()
             print('length: ',len(self.rssi_group))
-            #print(self.count_image)
 
             # The number of scanning data
             scan_number = 100 # ms
@@ -396,8 +410,11 @@ class RenderArea(QtWidgets.QWidget):
 
                 self.rssi_group = []
                 self.count_image += 1
+                self.scan_available = False
 
         else:
+            # default mode
+
             self._draw_graph()
             self._draw_reticle()
 
