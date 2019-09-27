@@ -46,10 +46,6 @@ class Ubertooth(object):
         buffer_size = frame_size * 3
         frequency_index_map = dict(((int(round(frequency_axis[index] / 1e6)), index) for index in range(frame_size)))
 
-#        print(frequency_axis)
-#        print(f'Frame size: {frame_size}') # 84
-
-
         low = int(round(low_frequency / 1e6))
         high = int(round(high_frequency / 1e6))
         args = ["ubertooth-specan", "-d", "-", "-l %d" % low, "-u %d" % high, "-U %d" % ubertooth_device]
@@ -59,9 +55,6 @@ class Ubertooth(object):
         rssi_offset = -54
         rssi_values = numpy.empty((bin_count,), dtype=numpy.float32)
         rssi_values.fill(default_raw_rssi + rssi_offset)
-
-#       print(type(rssi_values)) # numpy array
-#       print(f'RSSI value: {rssi_values}') # 초기화된 RSSI
 
         # Give it a chance to time out if it fails to find Ubertooth
         time.sleep(0.5)
@@ -74,9 +67,6 @@ class Ubertooth(object):
             while len(data) >= 3:
 
                 frequency, raw_rssi_value = struct.unpack('>Hb', data[:3])
-                # print(f'OOOOOwing : {frequency}')
-                # print(f'OOOOOwing : {raw_rssi_value}')
-
                 data = data[3:]
                 if frequency >= low and frequency <= high:
                     index = frequency_index_map[frequency]
@@ -89,9 +79,6 @@ class Ubertooth(object):
                         yield (frequency_axis, rssi_values)
                         rssi_values.fill(default_raw_rssi + rssi_offset)
                     rssi_values[index] = raw_rssi_value + rssi_offset
-
-                # print(f'RSSI Value: {rssi_values}')
-                # print(f'Frequency value: {frequency_axis}')
 
     def close(self):
         if self.proc and not self.proc.poll():
