@@ -76,8 +76,15 @@ class RenderArea(QtWidgets.QWidget):
 
         self.rssi_group = []
         self.count_image = 0
+
+        # threshold of RSSI
         self.scan_threshold = -80
         self.scan_available = False
+
+        self._save = save   # save mode
+
+        self._freqlist = freqlist   # list of frequencies to scan.
+        self._freqcount = 0         # order of frequencies
 
         self._graph = None
         self._reticle = None
@@ -101,10 +108,6 @@ class RenderArea(QtWidgets.QWidget):
         self._mouse_y2 = None
 
         self._clear_scheduled = False
-
-        self._save = save
-
-        self._freqlist = freqlist
 
         self._thread = SpecanThread(self._device,
                                     self._low_frequency,
@@ -365,16 +368,23 @@ class RenderArea(QtWidgets.QWidget):
             print(f'Frequency: {frequency_print}')
             print(f'RSSI value: {rssi_values}')
 
-            i, = numpy.where(frequency_print == 2425)
+            # The process of selecting the frequency to scan
+            # Select the frequency to be used this time via freqcount in freqlist
+            i, = numpy.where(frequency_print == self._freqlist[self._freqcount])
             rssi_value = rssi_values[i]
-            print(self._freqlist)
-            print(len(self._freqlist))
+            print('***************NOW:', frequency_print[i]) # print present frequency
+
+            # update freqcount to use the frequency in the following order.
+            self._freqcount += 1
+            if self._freqcount >= len(self._freqlist):
+                self._freqcount = 0
+
             if self.scan_available:
                 self.rssi_group.append(rssi_value)  # 측정값 저장
             else:
-                # 측정값이 threshold보다 크면, 측정시작하는 변수 True
+                # When the scanning value is greater than the threshold, the scanning starts.
                 if rssi_value >= self.scan_threshold:
-                    self.rssi_group.append(rssi_value) # 측정값 저장
+                    self.rssi_group.append(rssi_value)
                     self.scan_available = True
                 else:
                     # 그래프가 첫번째부터 값이 튀는 것을 방지하기 위해, 값이 threshold보다 커지기 전의 5개의 값도 저장
