@@ -327,7 +327,7 @@ class RenderArea(QtWidgets.QWidget):
             # The process of selecting the frequency to scan
             # Select the frequency to be used this time via freqcount in freqlist
             i, = numpy.where(frequency_print == self._freqlist[self._freqcount])
-            rssi_value = rssi_values[i]
+            rssi_value = int(rssi_values[i])
             print('***************NOW:', frequency_print[i]) # print present frequency
 
             # update freqcount to use the frequency in the following order.
@@ -358,6 +358,7 @@ class RenderArea(QtWidgets.QWidget):
             self._store_graph()
             print('length: ',len(self.rssi_group))
 
+
             # The number of scanning data
             scan_number = 100 # ms
 
@@ -366,17 +367,24 @@ class RenderArea(QtWidgets.QWidget):
                 if self.count_image != 0:
                     for i in range(10): print()  # 띄어쓰기
 
-                    now = datetime.now()
-                    now_date = now.strftime('%Y-%m-%d_%H_%M_%S_' + str(self.count_image))
+                    print(self.rssi_group)
 
+                    # visualize section
+                    x_axis = numpy.array(range(1, scan_number + 1))
                     plt.figure(figsize=(6, 4))
-
                     plt.xlabel('Time (ms)')
                     plt.ylabel('RSSI (dbm)')
-                    plt.ylim([-110, 0])
-                    plt.plot(list(range(1, scan_number + 1)), self.rssi_group)
+                    plt.ylim([0, -110])
+                    if len(self._freqlist) == 2:
+                        # color of odd x axis is blue
+                        # color of even x axis is red
+                        color = numpy.where(x_axis % 2 == 0, 'r', 'b')
+                    plt.bar(x_axis, self.rssi_group, color=color)
 
+                    # save section
                     bb = os.path.abspath('.')
+                    now = datetime.now()
+                    now_date = now.strftime('%Y-%m-%d_%H_%M_%S_' + str(self.count_image))
                     addr = bb + '/img_uber/' + now_date +'.png'
                     plt.savefig(addr)
 
