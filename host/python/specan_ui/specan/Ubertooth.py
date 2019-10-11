@@ -32,53 +32,95 @@ class Ubertooth(object):
     def __init__(self):
         self.proc = None
 
-    '''
-    low_frequency ( in ubertooth-specan-ui )    : 2400 * 1e6
-    high_frequency ( in ubertooth-specan-ui )   : 2483 * 1e6
-
-    첫 스캔시, 한번 호출된다.
-    '''
     def specan(self, low_frequency, high_frequency, freqlist=None, ubertooth_device=-1):
         spacing_hz = 1e6
-        bin_count = int(round((high_frequency - low_frequency) / spacing_hz)) + 1
-        frequency_axis = numpy.linspace(low_frequency, high_frequency, num=bin_count, endpoint=True)
-        frame_size = len(frequency_axis)
-        buffer_size = frame_size * 3
-        frequency_index_map = dict(((int(round(frequency_axis[index] / 1e6)), index) for index in range(frame_size)))
 
-        low = int(round(low_frequency / 1e6))
-        high = int(round(high_frequency / 1e6))
-        args = ["ubertooth-specan", "-d", "-", "-l %d" % low, "-u %d" % high, "-U %d" % ubertooth_device]
-        self.proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        # if there is frequency list
+        if freqlist:
+            freqlist_MHz = freqlist
+            freqlist_Hz = numpy.array(freqlist_MHz) * spacing_hz
+            bin_count = len(freqlist_Hz)
+            frequency_axis = freqlist_Hz
+            frame_size = len(frequency_axis)
+            buffer_size = frame_size * 3
+            frequency_index_map = dict(
+                ((int(round(frequency_axis[index] / 1e6)), index) for index in range(frame_size)))
 
-        default_raw_rssi = -128
-        rssi_offset = -54
-        rssi_values = numpy.empty((bin_count,), dtype=numpy.float32)
-        rssi_values.fill(default_raw_rssi + rssi_offset)
+            low = int(round(freqlist_Hz.min() / 1e6))
+            high = int(round(freqlist_Hz.max() / 1e6))
+            args = ["ubertooth-specan", "-d", "-", "-l %d" % low, "-u %d" % high, "-U %d" % ubertooth_device]
+            self.proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-        # Give it a chance to time out if it fails to find Ubertooth
-        time.sleep(0.5)
-        if self.proc.poll() is not None:
-            print("Could not open Ubertooth device")
-            print("Failed to run: ", ' '.join(args))
-            return
-        while self.proc.poll() is None:
-            data = self.proc.stdout.read(buffer_size)
-            while len(data) >= 3:
+            default_raw_rssi = -128
+            rssi_offset = -54
+            rssi_values = numpy.empty((bin_count,), dtype=numpy.float32)
+            rssi_values.fill(default_raw_rssi + rssi_offset)
 
-                frequency, raw_rssi_value = struct.unpack('>Hb', data[:3])
-                data = data[3:]
-                if frequency >= low and frequency <= high:
-                    index = frequency_index_map[frequency]
-                    if index == 0:
-                        # new frame, pause as a frame limiter!
-                        # 0.001 초마다 scan
-                        time.sleep(0.001)  # I regret nothing
+            # Give it a chance to time out if it fails to find Ubertooth
+            time.sleep(0.5)
+            if self.proc.poll() is not None:
+                print("Could not open Ubertooth device")
+                print("Failed to run: ", ' '.join(args))
+                return
+            while self.proc.poll() is None:
+                data = self.proc.stdout.read(buffer_size)
+                while len(data) >= 3:
 
-                        # We started a new frame, send the existing frame
-                        yield (frequency_axis, rssi_values)
-                        rssi_values.fill(default_raw_rssi + rssi_offset)
-                    rssi_values[index] = raw_rssi_value + rssi_offset
+                    frequency, raw_rssi_value = struct.unpack('>Hb', data[:3])
+                    data = data[3:]
+                    if frequency in freqlist_MHz:
+                        index = frequency_index_map[frequency]
+                        if index == 0:
+                            # new frame, pause as a frame limiter!
+                            # 0.001 초마다 scan
+                            time.sleep(0.001)  # I regret nothing
+
+                            # We started a new frame, send the existing frame
+                            yield (frequency_axis, rssi_values)
+                            rssi_values.fill(default_raw_rssi + rssi_offset)
+                        rssi_values[index] = raw_rssi_value + rssi_offset
+
+        # if there isn't frequency list (default)
+        else:
+            bin_count = int(round((high_frequency - low_frequency) / spacing_hz)) + 1
+            frequency_axis = numpy.linspace(low_frequency, high_frequency, num=bin_count, endpoint=True)
+            frame_size = len(frequency_axis)
+            buffer_size = frame_size * 3
+            frequency_index_map = dict(((int(round(frequency_axis[index] / 1e6)), index) for index in range(frame_size)))
+
+            low = int(round(low_frequency / 1e6))
+            high = int(round(high_frequency / 1e6))
+            args = ["ubertooth-specan", "-d", "-", "-l %d" % low, "-u %d" % high, "-U %d" % ubertooth_device]
+            self.proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+            default_raw_rssi = -128
+            rssi_offset = -54
+            rssi_values = numpy.empty((bin_count,), dtype=numpy.float32)
+            rssi_values.fill(default_raw_rssi + rssi_offset)
+
+            # Give it a chance to time out if it fails to find Ubertooth
+            time.sleep(0.5)
+            if self.proc.poll() is not None:
+                print("Could not open Ubertooth device")
+                print("Failed to run: ", ' '.join(args))
+                return
+            while self.proc.poll() is None:
+                data = self.proc.stdout.read(buffer_size)
+                while len(data) >= 3:
+
+                    frequency, raw_rssi_value = struct.unpack('>Hb', data[:3])
+                    data = data[3:]
+                    if frequency >= low and frequency <= high:
+                        index = frequency_index_map[frequency]
+                        if index == 0:
+                            # new frame, pause as a frame limiter!
+                            # 0.001 초마다 scan
+                            time.sleep(0.001)  # I regret nothing
+
+                            # We started a new frame, send the existing frame
+                            yield (frequency_axis, rssi_values)
+                            rssi_values.fill(default_raw_rssi + rssi_offset)
+                        rssi_values[index] = raw_rssi_value + rssi_offset
 
     def close(self):
         if self.proc and not self.proc.poll():
