@@ -1,4 +1,4 @@
-specan_ui.py is a basic spectrum analysis tool for the Ubertooth.
+## specan_ui.py is a basic spectrum analysis tool for the Ubertooth.
 
 Requirements (or "what I developed with"):
 
@@ -33,3 +33,27 @@ Execute with:
 Ubertooth project Web page for more details:
 
   http://ubertooth.sourceforget.net/
+
+---
+
+## Update (Custom)
+
+### Default mode (Frequency domain graph)
+```
+python ubertooth-specan-ui
+
+python3.7 ubertooth-specan-ui
+```
+
+### Custom mode (Time domain graph)
+You must add parameter save and freqlist in this mode.
+freq means frequency that you want to scan.
+```
+python ubertooth-specan-ui -save t -freqlist freq1 freq2 ...
+
+python ubertooth-specan-ui -save true -freqlist freq1 freq2 ...
+
+python3.7 ubertooth-specan-ui -save t -freqlist freq1 freq2 ...
+
+python3.7 ubertooth-specan-ui -save true -freqlist freq1 freq2 ...
+```
