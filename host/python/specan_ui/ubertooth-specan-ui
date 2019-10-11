@@ -44,7 +44,7 @@ MIN_FREQ = 2300
 MAX_FREQ = 2600
 
 class SpecanThread(threading.Thread):
-    def __init__(self, device, low_frequency, high_frequency, new_frame_callback, save, ubertooth_device=-1):
+    def __init__(self, device, low_frequency, high_frequency, new_frame_callback, freqlist=None, ubertooth_device=-1):
         threading.Thread.__init__(self)
         self.daemon = True
 
@@ -55,10 +55,10 @@ class SpecanThread(threading.Thread):
         self._new_frame_callback = new_frame_callback
         self._stopping = False
         self._stopped = False
-        self._save = save
+        self._freqlist = freqlist
 
     def run(self):
-        frame_source = self._device.specan(self._low_frequency, self._high_frequency, self._save, ubertooth_device=self._ubertooth_device)
+        frame_source = self._device.specan(self._low_frequency, self._high_frequency, self._freqlist, ubertooth_device=self._ubertooth_device)
         for frequency_axis, rssi_values in frame_source:
             self._new_frame_callback(numpy.copy(frequency_axis), numpy.copy(rssi_values))
             if self._stopping:
@@ -113,7 +113,7 @@ class RenderArea(QtWidgets.QWidget):
                                     self._low_frequency,
                                     self._high_frequency,
                                     self._new_frame,
-                                    self._save,
+                                    self._freqlist,
                                     ubertooth_device=ubertooth_device)
         self._thread.start()
 

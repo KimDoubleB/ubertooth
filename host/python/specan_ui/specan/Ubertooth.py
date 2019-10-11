@@ -38,7 +38,7 @@ class Ubertooth(object):
 
     첫 스캔시, 한번 호출된다.
     '''
-    def specan(self, low_frequency, high_frequency, save=False, ubertooth_device=-1):
+    def specan(self, low_frequency, high_frequency, freqlist=None, ubertooth_device=-1):
         spacing_hz = 1e6
         bin_count = int(round((high_frequency - low_frequency) / spacing_hz)) + 1
         frequency_axis = numpy.linspace(low_frequency, high_frequency, num=bin_count, endpoint=True)
