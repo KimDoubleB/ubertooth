@@ -348,6 +348,9 @@ class RenderArea(QtWidgets.QWidget):
             else:
                 # When the scanning value is greater than the threshold, the scanning starts.
                 if rssi_value >= self.scan_threshold:
+                    # 여기서 len(self.rssi_group)을 뽑아서 확인해봐야 함
+                    # 이게 무조건 6번째에 _frequency의 정보를 담은 것이 아니라, 0번째에서 넘었으면 첫번째 정보일 수도 있으니..
+                    # len(self.rssi_group)을 뽑아서 몇 번째에서 넘은 것인지 확인해봐야 한다.
                     self._frequency = frequency_print[i]
                     self.rssi_group.append(rssi_value)
                     self.scan_available = True
