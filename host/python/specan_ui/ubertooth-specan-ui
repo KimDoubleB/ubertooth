@@ -23,6 +23,7 @@ import signal
 import sys
 import threading
 import numpy
+import csv
 
 from argparse import ArgumentParser
 
@@ -85,6 +86,7 @@ class RenderArea(QtWidgets.QWidget):
 
         self._freqlist = freqlist   # list of frequencies to scan.
         self._freqcount = 0         # order of frequencies
+        self._frequency = 0
 
         self._graph = None
         self._reticle = None
@@ -150,6 +152,12 @@ class RenderArea(QtWidgets.QWidget):
         self._persisted_frames_next_index = (self._persisted_frames_next_index + 1) % self._persisted_frames.shape[0]
         self.update()
 
+    def _write_csv(self, now):
+        f = open('rssi.csv', 'a', encoding='utf-8', newline='')
+        wr=csv.writer(f)
+        self.rssi_group.insert(0, self._frequency[0])
+        wr.writerow(self.rssi_group)
+        f.close()
 
     def _draw_graph(self):
         if self._clear_scheduled:
@@ -340,6 +348,7 @@ class RenderArea(QtWidgets.QWidget):
             else:
                 # When the scanning value is greater than the threshold, the scanning starts.
                 if rssi_value >= self.scan_threshold:
+                    self._frequency = frequency_print[i]
                     self.rssi_group.append(rssi_value)
                     self.scan_available = True
                 else:
@@ -368,13 +377,13 @@ class RenderArea(QtWidgets.QWidget):
                     for i in range(10): print()  # 띄어쓰기
 
                     print(self.rssi_group)
-
                     # visualize section
                     x_axis = numpy.array(range(1, scan_number + 1))
                     plt.figure(figsize=(6, 4))
                     plt.xlabel('Time (ms)')
                     plt.ylabel('RSSI (dbm)')
                     plt.ylim([0, -110])
+                    color = 'r'
                     if len(self._freqlist) == 2:
                         # color of odd x axis is blue
                         # color of even x axis is red
@@ -384,7 +393,8 @@ class RenderArea(QtWidgets.QWidget):
                     # save section
                     bb = os.path.abspath('.')
                     now = datetime.now()
-                    now_date = now.strftime('%Y-%m-%d_%H_%M_%S_' + str(self.count_image))
+                    now_date = now.strftime('%Y%m%d%H%M%S_' + str(self.count_image))
+                    self._write_csv(now_date)
                     addr = bb + '/img_uber/' + now_date +'.png'
                     plt.savefig(addr)
 
