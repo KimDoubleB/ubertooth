@@ -354,11 +354,11 @@ class RenderArea(QtWidgets.QWidget):
                     self._frequency = frequency_print[i]
                     self.rssi_group.append(rssi_value)
                     self.scan_available = True
-                else:
-                    # To prevent the graph from splashing first, store five values before the value is greater than the threshold
-                    if len(self.rssi_group) >= 5:
-                        self.rssi_group.pop(0)
-                    self.rssi_group.append(rssi_value)
+                # else:
+                #     # To prevent the graph from splashing first, store five values before the value is greater than the threshold
+                #     if len(self.rssi_group) >= 5:
+                #         self.rssi_group.pop(0)
+                #     self.rssi_group.append(rssi_value)
 
     # draw graph data
     def paintEvent(self, event):
