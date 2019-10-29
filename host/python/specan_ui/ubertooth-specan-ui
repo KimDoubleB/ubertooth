@@ -86,7 +86,7 @@ class RenderArea(QtWidgets.QWidget):
 
         self._freqlist = freqlist   # list of frequencies to scan.
         self._freqcount = 0         # order of frequencies
-        self._frequency = 0
+        self._first_frequency = 0         # First frequency that is greater than threshold RSSI value.
 
         self._graph = None
         self._reticle = None
@@ -155,7 +155,7 @@ class RenderArea(QtWidgets.QWidget):
     def _write_csv(self, now):
         f = open('rssi.csv', 'a', encoding='utf-8', newline='')
         wr=csv.writer(f)
-        self.rssi_group.insert(0, self._frequency[0])
+        self.rssi_group.insert(0, self._first_frequency)
         wr.writerow(self.rssi_group)
         f.close()
 
@@ -308,7 +308,7 @@ class RenderArea(QtWidgets.QWidget):
             finally:
                 painter.end()
 
-    def _store_graph(self):
+    def _record_history(self):
         if self._clear_scheduled:
             frequency_axis, _ = self._frame
             self._clear_scheduled = False
@@ -324,19 +324,13 @@ class RenderArea(QtWidgets.QWidget):
         if self._frame:
             frequency_axis, rssi_values = self._frame
             frequency_print = frequency_axis / 1e6
-            print(f'Frequency: {frequency_print}')
-            print(f'RSSI value: {rssi_values}')
-
-            # 논문의 경우, Zigbee의 15, 21 channel 사용
-            # 15 channel: 2425 MHz
-            # 21 channel: 2455 MHz
-            # 해당 RSSI 값 사용 -> time domain으로 수행할 것.
 
             # The process of selecting the frequency to scan
             # Select the frequency to be used this time via freqcount in freqlist
             i, = numpy.where(frequency_print == self._freqlist[self._freqcount])
             rssi_value = int(rssi_values[i])
-            print('***************NOW:', frequency_print[i]) # print present frequency
+            print(f'Now frequency (order): {int(frequency_print[i])}')  # print present frequency
+            print(f'- RSSI value: {rssi_value}')                          # print present RSSI value
 
             # update freqcount to use the frequency in the following order.
             self._freqcount += 1
@@ -348,12 +342,12 @@ class RenderArea(QtWidgets.QWidget):
             else:
                 # When the scanning value is greater than the threshold, the scanning starts.
                 if rssi_value >= self.scan_threshold:
-                    # 여기서 len(self.rssi_group)을 뽑아서 확인해봐야 함
-                    # 이게 무조건 6번째에 _frequency의 정보를 담은 것이 아니라, 0번째에서 넘었으면 첫번째 정보일 수도 있으니..
-                    # len(self.rssi_group)을 뽑아서 몇 번째에서 넘은 것인지 확인해봐야 한다.
-                    self._frequency = frequency_print[i]
+                    self._first_frequency = int(frequency_print[i])
                     self.rssi_group.append(rssi_value)
                     self.scan_available = True
+
+                # cache process (threshold 넘기전 5개 데이터도 저장하는 과정이었다. 하지만 어느 부분에서 넘는지 기록해야하는 불편함이 존재했으며,
+                # 굳이 필요없는 과정이여서 삭제
                 # else:
                 #     # To prevent the graph from splashing first, store five values before the value is greater than the threshold
                 #     if len(self.rssi_group) >= 5:
@@ -367,8 +361,8 @@ class RenderArea(QtWidgets.QWidget):
             # save mode
 
             # get the data of rssi value that is drawn to graph
-            self._store_graph()
-            print('length: ',len(self.rssi_group))
+            self._record_history()
+            print(f'length: {len(self.rssi_group)}\n')
 
 
             # The number of scanning data
@@ -377,14 +371,16 @@ class RenderArea(QtWidgets.QWidget):
             # store graph
             if len(self.rssi_group) == scan_number:
                 if self.count_image != 0:
-                    for i in range(10): print()  # 띄어쓰기
-
+                    print('Result [RSSI]:')
                     print(self.rssi_group)
+                    print('='*50) # process finish
+                    print()
                     # visualize section
                     x_axis = numpy.array(range(1, scan_number + 1))
                     plt.figure(figsize=(6, 4))
                     plt.xlabel('Time (ms)')
                     plt.ylabel('RSSI (dbm)')
+                    plt.title(self._first_frequency)
                     plt.ylim([0, -110])
                     color = 'r'
                     if len(self._freqlist) == 2:
