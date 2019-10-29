@@ -79,7 +79,7 @@ class RenderArea(QtWidgets.QWidget):
         self.count_image = 0
 
         # threshold of RSSI
-        self.scan_threshold = -80
+        self.scan_threshold = -75
         self.scan_available = False
 
         self._save = save   # save mode
