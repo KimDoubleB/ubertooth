@@ -2481,7 +2481,8 @@ void specan()
 			cc2400_strobe(SRX);
 
 			/* give the CC2400 time to acquire RSSI reading */
-			volatile u32 j = 500; while (--j); //FIXME crude delay
+			//volatile u32 j = 500; while (--j); //FIXME crude delay
+			volatile u32 j = 300; while (--j); //FIXME crude delay
 			buf[3 * i] = (f >> 8) & 0xFF;
 			buf[(3 * i) + 1] = f  & 0xFF;
 			buf[(3 * i) + 2] = cc2400_get(RSSI) >> 8;
