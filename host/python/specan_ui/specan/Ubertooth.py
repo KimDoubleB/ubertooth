@@ -65,7 +65,8 @@ class Ubertooth(object):
             while self.proc.poll() is None:
                 data = self.proc.stdout.read(buffer_size)
                 while len(data) >= 3:
-
+                    print('^'*50)
+                    print(data[0], data[1], data[2])
                     frequency, raw_rssi_value = struct.unpack('>Hb', data[:3])
                     data = data[3:]
                     if frequency in freqlist_MHz:
