@@ -62,12 +62,20 @@ class Ubertooth(object):
                 print("Could not open Ubertooth device")
                 print("Failed to run: ", ' '.join(args))
                 return
+            clkn_temp = 0
             while self.proc.poll() is None:
                 data = self.proc.stdout.read(buffer_size)
+                print('-' * 50)
+                print('보내준 데이터 끝났다!!!!!!!!')
+                # 1 clkn = 312.5 micro sec
                 while len(data) >= 3:
-                    print('^'*50)
-                    print(data[0], data[1], data[2])
-                    frequency, raw_rssi_value = struct.unpack('>Hb', data[:3])
+                    a, b = struct.unpack('>bH', data[:3]) # 24 bits (3 bytes)
+                    a = a << 16
+                    clkn = int(a+b)
+                    print(clkn - clkn_temp)
+                    clkn_temp = clkn
+                    frequency = -120
+                    raw_rssi_value = -37
                     data = data[3:]
                     if frequency in freqlist_MHz:
                         index = frequency_index_map[frequency]

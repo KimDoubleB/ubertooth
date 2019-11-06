@@ -33,6 +33,7 @@
  * slot.
  */
 volatile uint32_t clkn;
+volatile uint32_t clkn2;
 volatile uint32_t last_hop;
 
 volatile uint32_t clkn_offset;
