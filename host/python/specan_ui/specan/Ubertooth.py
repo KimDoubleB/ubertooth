@@ -82,7 +82,7 @@ class Ubertooth(object):
                         if index == 0:
                             # new frame, pause as a frame limiter!
                             # 0.001 초마다 scan
-                            time.sleep(0.001)  # I regret nothing
+#                            time.sleep(0.001)  # I regret nothing
 
                             # We started a new frame, send the existing frame
                             yield (frequency_axis, rssi_values)
