@@ -25,8 +25,10 @@
 #include <sys/time.h>
 
 uint8_t debug;
+int rssi_offset = -54, isOk=0, rssi100=0;
 double first=0;
 long second=0, diff2;
+
 
 /**
  * Returns the current time in microseconds.
@@ -46,51 +48,80 @@ void cb_specan(ubertooth_t* ut __attribute__((unused)), void* args)
 	usb_pkt_rx rx = fifo_pop(ut->fifo);
 	int r, j;
 	uint16_t frequency;
-	int8_t rssi;
-	double diff;
-	double time_present;
+	int8_t rssi, rssi_result;
+	double diff, time_present;
+
 	printf("Out for loop\n");
 	printf("----------------------\n");
 	/* process each received block */
 	for (j = 0; j < 6; j += 3) {
 		frequency = (rx.data[j] << 8) | rx.data[j + 1];
 		rssi = (int8_t)rx.data[j + 2];
-		switch(output_mode) {
-			case SPECAN_FILE:
-				r = fwrite(&rx.data[j], 1, 3, dumpfile);
-				if(r != 3) {
-					fprintf(stderr, "Error writing to file (%d)\n", r);
-					return;
-				}
-				break;
-			case SPECAN_STDOUT:
-				time_present = (double)rx.clk100ns/10000000;
-				
-				printf("Present: %f ", time_present);
-				if(first < 0.00001) diff = time_present;
-				else diff = time_present-first;
-				first = time_present;
+		rssi_result = rssi + rssi_offset;
 
-				printf("%f, %d, %d\n", diff,
-				       frequency, rssi);
-				break;
-			case SPECAN_GNUPLOT_NORMAL:
-				printf("%d %d\n", frequency, rssi);
-				if(frequency == high_freq)
-					printf("\n");
-				break;
-			case SPECAN_GNUPLOT_3D:
-				printf("%f %d %d\n", ((double)rx.clk100ns)/10000000,
-				       frequency, rssi);
-				if(frequency == high_freq)
-					printf("\n");
-				break;
-			default:
-				fprintf(stderr, "Unrecognised output mode (%d)\n",
-				        output_mode);
-				return;
-				break;
+		if(rssi100 > 0){
+			if(rssi100 == 100) {
+				printf("----- 100 rssi is made ......\n");
+				rssi100 = 0;
+				isOk = 0;
+			}
+			else isOk = 1;
 		}
+		else{
+			if(rssi_result > -75) isOk = 1;
+		}
+
+
+		
+		if (isOk > 0){
+			time_present = (double)rx.clk100ns/10000000;
+				
+			printf("Present: %f\n", time_present);
+			if(first < 0.00001) diff = time_present;
+			else diff = time_present-first;
+			first = time_present;
+
+			printf("The number of rssi: %d\n", rssi100);
+			printf("%f, %d, %d\n\n", diff, frequency, rssi_result);
+			++rssi100;		
+		}
+
+		// switch(output_mode) {
+		// 	case SPECAN_FILE:
+		// 		r = fwrite(&rx.data[j], 1, 3, dumpfile);
+		// 		if(r != 3) {
+		// 			fprintf(stderr, "Error writing to file (%d)\n", r);
+		// 			return;
+		// 		}
+		// 		break;
+		// 	case SPECAN_STDOUT:
+		// 		time_present = (double)rx.clk100ns/10000000;
+				
+		// 		printf("Present: %f ", time_present);
+		// 		if(first < 0.00001) diff = time_present;
+		// 		else diff = time_present-first;
+		// 		first = time_present;
+
+		// 		printf("%f, %d, %d\n", diff,
+		// 		       frequency, rssi);
+		// 		break;
+		// 	case SPECAN_GNUPLOT_NORMAL:
+		// 		printf("%d %d\n", frequency, rssi);
+		// 		if(frequency == high_freq)
+		// 			printf("\n");
+		// 		break;
+		// 	case SPECAN_GNUPLOT_3D:
+		// 		printf("%f %d %d\n", ((double)rx.clk100ns)/10000000,
+		// 		       frequency, rssi);
+		// 		if(frequency == high_freq)
+		// 			printf("\n");
+		// 		break;
+		// 	default:
+		// 		fprintf(stderr, "Unrecognised output mode (%d)\n",
+		// 		        output_mode);
+		// 		return;
+		// 		break;
+		// }
 	}
 	if(second < 0.00001) diff2 = getMicrotime();
 	else diff2 = getMicrotime()-second;
