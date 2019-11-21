@@ -22,8 +22,20 @@
 #include <getopt.h>
 #include <stdlib.h>
 #include "ubertooth.h"
+#include <sys/time.h>
 
 uint8_t debug;
+double first=0;
+long second=0, diff2;
+
+/**
+ * Returns the current time in microseconds.
+ */
+long getMicrotime(){
+	struct timeval currentTime;
+	gettimeofday(&currentTime, NULL);
+	return currentTime.tv_sec * (int)1e6 + currentTime.tv_usec;
+}
 
 void cb_specan(ubertooth_t* ut __attribute__((unused)), void* args)
 {
@@ -35,9 +47,12 @@ void cb_specan(ubertooth_t* ut __attribute__((unused)), void* args)
 	int r, j;
 	uint16_t frequency;
 	int8_t rssi;
-
+	double diff;
+	double time_present;
+	printf("Out for loop\n");
+	printf("----------------------\n");
 	/* process each received block */
-	for (j = 0; j < DMA_SIZE-2; j += 3) {
+	for (j = 0; j < 6; j += 3) {
 		frequency = (rx.data[j] << 8) | rx.data[j + 1];
 		rssi = (int8_t)rx.data[j + 2];
 		switch(output_mode) {
@@ -49,7 +64,14 @@ void cb_specan(ubertooth_t* ut __attribute__((unused)), void* args)
 				}
 				break;
 			case SPECAN_STDOUT:
-				printf("%f, %d, %d\n", ((double)rx.clk100ns)/10000000,
+				time_present = (double)rx.clk100ns/10000000;
+				
+				printf("Present: %f ", time_present);
+				if(first < 0.00001) diff = time_present;
+				else diff = time_present-first;
+				first = time_present;
+
+				printf("%f, %d, %d\n", diff*10000000,
 				       frequency, rssi);
 				break;
 			case SPECAN_GNUPLOT_NORMAL:
@@ -70,6 +92,11 @@ void cb_specan(ubertooth_t* ut __attribute__((unused)), void* args)
 				break;
 		}
 	}
+	if(second < 0.00001) diff2 = getMicrotime();
+	else diff2 = getMicrotime()-second;
+	second = getMicrotime();
+
+	printf("time: %ld\n", diff2);
 	fflush(stderr);
 }
 
@@ -177,7 +204,7 @@ int main(int argc, char *argv[])
 		return r;
 
 	// tell ubertooth to start specan and send packets
-	r = cmd_specan(ut->devh, lower, upper);
+	r = cmd_specan(ut->devh, 2439, 2442);
 	if (r < 0)
 		return r;
 

@@ -71,7 +71,7 @@ volatile uint8_t modulation = MOD_BT_BASIC_RATE;
 volatile uint16_t low_freq = 2400;
 volatile uint16_t high_freq = 2483;
 volatile int8_t rssi_threshold = -30;  // -54dBm - 30 = -84dBm
-
+volatile int8_t low_high = 0;  // 0-low, 1-high
 /* Generic TX stuff */
 generic_tx_packet tx_pkt;
 
@@ -2474,28 +2474,35 @@ void specan()
 	while ((cc2400_status() & FS_LOCK));
 
 	while (requested_mode == MODE_SPECAN) {
-		for (f = low_freq; f < high_freq + 1; f++) {
-			cc2400_set(FSDIV, f - 1);
-			cc2400_strobe(SFSON);
-			while (!(cc2400_status() & FS_LOCK));
-			cc2400_strobe(SRX);
-
-			/* give the CC2400 time to acquire RSSI reading */
-			volatile u32 j = 500; while (--j); //FIXME crude delay
-			buf[3 * i] = (f >> 8) & 0xFF;
-			buf[(3 * i) + 1] = f  & 0xFF;
-			buf[(3 * i) + 2] = cc2400_get(RSSI) >> 8;
-			i++;
-			if (i == 16) {
-				enqueue(SPECAN, buf);
-				i = 0;
-
-				handle_usb(clkn);
-			}
-
-			cc2400_strobe(SRFOFF);
-			while ((cc2400_status() & FS_LOCK));
+		if (low_high > 0) {
+			f = high_freq;
+			low_high = 0;
 		}
+		else {
+			f = low_freq;
+			low_high = 1;
+		}
+	
+		cc2400_set(FSDIV, f - 1);
+		cc2400_strobe(SFSON);
+		while (!(cc2400_status() & FS_LOCK));
+		cc2400_strobe(SRX);
+
+		/* give the CC2400 time to acquire RSSI reading */
+		volatile u32 j = 1000; while (--j); //FIXME crude delay
+		buf[3 * i] = (f >> 8) & 0xFF;
+		buf[(3 * i) + 1] = f  & 0xFF;
+		buf[(3 * i) + 2] = cc2400_get(RSSI) >> 8;
+		i++;
+		if (i == 2) {
+			enqueue(SPECAN, buf);
+			i = 0;
+
+			handle_usb(clkn);
+		}
+
+		cc2400_strobe(SRFOFF);
+		while ((cc2400_status() & FS_LOCK));
 	}
 	RXLED_CLR;
 }
