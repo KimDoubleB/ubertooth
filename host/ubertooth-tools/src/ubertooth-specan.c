@@ -71,7 +71,7 @@ void cb_specan(ubertooth_t* ut __attribute__((unused)), void* args)
 				else diff = time_present-first;
 				first = time_present;
 
-				printf("%f, %d, %d\n", diff*10000000,
+				printf("%f, %d, %d\n", diff,
 				       frequency, rssi);
 				break;
 			case SPECAN_GNUPLOT_NORMAL:
