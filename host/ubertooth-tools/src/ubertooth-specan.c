@@ -29,7 +29,6 @@ int rssi_offset = -54, isOk=0, rssi100=0;
 double first=0;
 long second=0, diff2;
 int j=0;
-struct timeval startTime, endTime, gepTime;
 
 void cb_specan(ubertooth_t* ut __attribute__((unused)), void* args)
 {
@@ -42,8 +41,8 @@ void cb_specan(ubertooth_t* ut __attribute__((unused)), void* args)
 	uint16_t frequency;
 	int8_t rssi, rssi_result;
 	double diff, time_present;
-	
-	gettimeofday( &startTime, NULL );
+
+
 	/* process each received block */
 	// j = 0 2439
 	// j = 3 2442
@@ -79,16 +78,6 @@ void cb_specan(ubertooth_t* ut __attribute__((unused)), void* args)
         printf("%f, %d, %d\n", time_present, frequency, rssi_result);
         ++rssi100;
 	}
-	gettimeofday( &endTime, NULL );
-	gepTime.tv_sec = endTime.tv_sec - startTime.tv_sec;
-	gepTime.tv_usec = endTime.tv_usec - startTime.tv_usec;
-
-	if ( gepTime.tv_usec < 0 ) {
-		gepTime.tv_sec = gepTime.tv_sec - 1;
-		gepTime.tv_usec = gepTime.tv_usec + 1000000;
-	}
-	//printf("ellapsed time [%ld] second\n", gepTime.tv_usec);
-
 	fflush(stderr);
 }
 
