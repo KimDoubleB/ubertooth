@@ -27,7 +27,8 @@
 uint8_t debug;
 int rssi_offset = -54, isOk=0, rssi100=0;
 double first=0;
-long second=0, diff2, temp;
+long second=0, diff2;
+int j=0;
 struct timeval startTime, endTime, gepTime;
 
 void cb_specan(ubertooth_t* ut __attribute__((unused)), void* args)
@@ -37,40 +38,46 @@ void cb_specan(ubertooth_t* ut __attribute__((unused)), void* args)
 	uint8_t output_mode = ((uint8_t*)args)[2];
 
 	usb_pkt_rx rx = fifo_pop(ut->fifo);
-	int r, j;
+	int r;
 	uint16_t frequency;
 	int8_t rssi, rssi_result;
 	double diff, time_present;
 	
 	gettimeofday( &startTime, NULL );
 	/* process each received block */
-	for (j = 0; j < 6; j += 3) {
-		frequency = (rx.data[j] << 8) | rx.data[j + 1];
-		rssi = (int8_t)rx.data[j + 2];
-		rssi_result = rssi + rssi_offset;
+	// j = 0 2439
+	// j = 3 2442
 
-		if(rssi100 > 0){
-			if(rssi100 == 100) {
-				rssi100 = 0;
-				isOk = 0;
-			}
-			else isOk = 1;
-		}
-		else{
-			if(rssi_result > -75) isOk = 1;
-		}
-		if (isOk > 0){
-			time_present = (double)rx.clk100ns/10000000;
-				
-			//printf("Present: %f\n", time_present);
-			diff = time_present-first;
-			first = time_present;
 
-			//printf("The number of rssi: %d\n", rssi100);
-			//printf("%f, %d, %d\n\n", diff, frequency, rssi_result);
-			printf("%f, %d, %d\n\n", time_present, frequency, rssi_result);
-			++rssi100;		
-		}
+    if(j == 0) j = 3;
+    else j = 0;
+
+    frequency = (rx.data[j] << 8) | rx.data[j + 1];
+    rssi = (int8_t)rx.data[j + 2];
+    rssi_result = rssi + rssi_offset;
+
+    if(rssi100 > 0){
+        if(rssi100 == 100) {
+            rssi100 = 0;
+            isOk = 0;
+            printf("-\n");
+        }
+        else isOk = 1;
+    }
+    else{
+        if(rssi_result > -75) isOk = 1;
+    }
+    if (isOk > 0){
+        time_present = (double)rx.clk100ns/10000000;
+
+        //printf("Present: %f\n", time_present);
+        diff = time_present-first;
+        first = time_present;
+
+        //printf("The number of rssi: %d\n", rssi100);
+        //printf("%f, %d, %d\n\n", diff, frequency, rssi_result);
+        printf("%f, %d, %d\n", time_present, frequency, rssi_result);
+        ++rssi100;
 	}
 	gettimeofday( &endTime, NULL );
 	gepTime.tv_sec = endTime.tv_sec - startTime.tv_sec;
@@ -80,7 +87,7 @@ void cb_specan(ubertooth_t* ut __attribute__((unused)), void* args)
 		gepTime.tv_sec = gepTime.tv_sec - 1;
 		gepTime.tv_usec = gepTime.tv_usec + 1000000;
 	}
-	printf("ellapsed time [%02d.%02d] second\n", gepTime.tv_sec, gepTime.tv_usec);
+	//printf("ellapsed time [%ld] second\n", gepTime.tv_usec);
 
 	fflush(stderr);
 }
