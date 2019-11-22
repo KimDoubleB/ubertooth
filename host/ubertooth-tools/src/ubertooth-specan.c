@@ -41,40 +41,26 @@ void cb_specan(ubertooth_t* ut __attribute__((unused)), void* args)
 	uint16_t frequency;
 	int8_t rssi, rssi_result;
 	double diff, time_present;
-
-
 	/* process each received block */
 	// j = 0 2439
 	// j = 3 2442
-
-
     if(j == 0) j = 3;
     else j = 0;
-
     frequency = (rx.data[j] << 8) | rx.data[j + 1];
     rssi = (int8_t)rx.data[j + 2];
     rssi_result = rssi + rssi_offset;
 
-    if(rssi100 > 0){
-        if(rssi100 == 100) {
-            rssi100 = 0;
-            isOk = 0;
-            printf("-\n");
-        }
-        else isOk = 1;
+    if(rssi100 == 100) {
+        rssi100 = 0;
+        printf("-\n");
     }
-    else{
-        if(rssi_result > -75) isOk = 1;
-    }
-    if (isOk > 0){
+
+    if (rssi_result > -75){
         time_present = (double)rx.clk100ns/10000000;
 
-        //printf("Present: %f\n", time_present);
         diff = time_present-first;
         first = time_present;
 
-        //printf("The number of rssi: %d\n", rssi100);
-        //printf("%f, %d, %d\n\n", diff, frequency, rssi_result);
         printf("%f, %d, %d\n", time_present, frequency, rssi_result);
         ++rssi100;
 	}
