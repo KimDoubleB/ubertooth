@@ -22,22 +22,19 @@
 #include <getopt.h>
 #include <stdlib.h>
 #include "ubertooth.h"
-#include <sys/time.h>
+#include <time.h>
+
+struct timeval {
+	time_t          tv_sec;         /* seconds */
+	suseconds_t     tv_usec;        /* and microseconds */
+};
 
 uint8_t debug;
 int rssi_offset = -54, isOk=0, rssi100=0;
 double first=0;
 long second=0, diff2, temp;
+struct timeval startTime, endTime, gepTime;
 
-
-/**
- * Returns the current time in microseconds.
- */
-long getMicrotime(){
-	struct timeval currentTime;
-	gettimeofday(&currentTime, NULL);
-	return currentTime.tv_sec * (int)1e6 + currentTime.tv_usec;
-}
 
 void cb_specan(ubertooth_t* ut __attribute__((unused)), void* args)
 {
@@ -50,7 +47,8 @@ void cb_specan(ubertooth_t* ut __attribute__((unused)), void* args)
 	uint16_t frequency;
 	int8_t rssi, rssi_result;
 	double diff, time_present;
-
+	
+	gettimeofday( &startTime, NULL );
 	/* process each received block */
 	for (j = 0; j < 6; j += 3) {
 		frequency = (rx.data[j] << 8) | rx.data[j + 1];
@@ -67,9 +65,6 @@ void cb_specan(ubertooth_t* ut __attribute__((unused)), void* args)
 		else{
 			if(rssi_result > -75) isOk = 1;
 		}
-
-
-		
 		if (isOk > 0){
 			time_present = (double)rx.clk100ns/10000000;
 				
@@ -83,11 +78,16 @@ void cb_specan(ubertooth_t* ut __attribute__((unused)), void* args)
 			++rssi100;		
 		}
 	}
-	temp = getMicrotime();
-	diff2 = temp - second;
-	second = temp;
+	gettimeofday( &endTime, NULL );
+	gepTime.tv_sec = endTime.tv_sec - startTime.tv_sec;
+	gepTime.tv_usec = endTime.tv_usec - startTime.tv_usec;
 
-	//printf("time: %ld\n", diff2);
+	if ( gepTime.tv_usec < 0 ) {
+		gepTime.tv_sec = gepTime.tv_sec - 1;
+		gepTime.tv_usec = gepTime.tv_usec + 1000000;
+	}
+	printf("ellapsed time [%02d.%02d] second\n", gepTime.tv_sec, gepTime.tv_usec);
+
 	fflush(stderr);
 }
 
