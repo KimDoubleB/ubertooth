@@ -24,17 +24,11 @@
 #include "ubertooth.h"
 #include <time.h>
 
-struct timeval {
-	time_t          tv_sec;         /* seconds */
-	suseconds_t     tv_usec;        /* and microseconds */
-};
-
 uint8_t debug;
 int rssi_offset = -54, isOk=0, rssi100=0;
 double first=0;
 long second=0, diff2, temp;
 struct timeval startTime, endTime, gepTime;
-
 
 void cb_specan(ubertooth_t* ut __attribute__((unused)), void* args)
 {
